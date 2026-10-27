@@ -5,8 +5,18 @@ export const SITE_TAGLINE = "Rent Essentials, Not Expenses";
 export const SERVICE_CITY = "Gwalior";
 
 export const PRIMARY_NAV_LINKS = [
-  { href: "/listings", label: "Browse listings" },
-  { href: "/#how-it-works", label: "How it works" },
+  { href: "/listings", label: "Browse listings", wideOnly: false },
+  { href: "/#how-it-works", label: "How it works", wideOnly: true },
+] as const;
+
+export const GUEST_NAV_LINKS = [
+  { href: "/login", label: "Log in" },
+  { href: "/signup", label: "Create account" },
+] as const;
+
+export const ACCOUNT_NAV_LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/account", label: "Account" },
 ] as const;
 
 export const LISTING_CATEGORIES = [
