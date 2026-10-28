@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingForm } from "@/components/listings/provider/listing-form";
 import { requireRole } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "New listing" };
 
-export default async function NewListingPage() {
+async function NewListingPage() {
   const profile = await requireRole(["provider"]);
 
   return (
@@ -18,5 +20,15 @@ export default async function NewListingPage() {
         <ListingForm />
       </div>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <NewListingPage />
+    </Suspense>
   );
 }

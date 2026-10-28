@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     template: `%s · ${SITE_NAME}`,
   },
   description: `Rent furniture, appliances, bicycles, and household essentials from local providers in ${SERVICE_CITY}.`,
+  // The site has its own dark theme. This asks the Dark Reader extension not
+  // to restyle it; its injected attributes caused hydration mismatches.
+  other: { "darkreader-lock": "true" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

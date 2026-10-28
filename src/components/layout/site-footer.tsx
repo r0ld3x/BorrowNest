@@ -16,8 +16,9 @@ export function SiteFooter() {
             buying them.
           </p>
           <p>
-            We currently operate in {SERVICE_CITY}, India only. Listings shown
-            on this site are samples while the marketplace is being built.
+            We currently operate in {SERVICE_CITY}, India only. Every listing is
+            reviewed by BorrowNest before it appears, and payments are made
+            offline between renter and provider.
           </p>
         </div>
       </div>

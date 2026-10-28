@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { AuthCard, SetupNotice } from "@/components/auth/auth-card";
 import { SignUpForm } from "@/components/auth/auth-forms";
+import { PageLoading } from "@/components/layout/page-loading";
 import { getVerifiedClaims } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = { title: "Create account" };
 
-export default async function SignUpPage() {
+async function SignUpPage() {
   const configured = isSupabaseConfigured();
   if (configured && (await getVerifiedClaims())) redirect("/dashboard");
 
@@ -30,5 +32,15 @@ export default async function SignUpPage() {
     >
       {configured ? <SignUpForm /> : <SetupNotice />}
     </AuthCard>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <SignUpPage />
+    </Suspense>
   );
 }

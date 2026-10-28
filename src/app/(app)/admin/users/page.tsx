@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AccountStatusControl } from "@/components/admin/account-status-control";
 import { FormMessage } from "@/components/auth/form-parts";
-import { Pagination, SearchForm } from "@/components/admin/list-controls";
+import { Pagination, SearchForm } from "@/components/common/list-controls";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { parsePage, parseSearch } from "@/lib/admin/params";
 import { listAccountsForAdmin } from "@/lib/admin/queries";
 import { ROLE_LABELS } from "@/lib/auth/redirects";
@@ -21,7 +23,7 @@ const NOTICES = {
   restored: "Account restored.",
 } as const;
 
-export default async function AdminUsersPage({ searchParams }: PageProps<"/admin/users">) {
+async function AdminUsersPage({ searchParams }: PageProps<"/admin/users">) {
   const profile = await requireRole(["admin"]);
   const params = await searchParams;
   const search = parseSearch(params.q);
@@ -100,5 +102,15 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
         </>
       )}
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/admin/users">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AdminUsersPage {...props} />
+    </Suspense>
   );
 }

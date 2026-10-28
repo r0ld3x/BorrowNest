@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingCard } from "@/components/listings/listing-card";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -18,15 +20,16 @@ import {
   SERVICE_CITY,
   type ListingCategorySlug,
 } from "@/lib/constants";
-import { getFeaturedSampleListings } from "@/lib/mock-listings";
+import { parseCatalogueFilters } from "@/lib/catalogue/params";
+import { searchCatalogue } from "@/lib/catalogue/queries";
 
 const CATEGORY_ICONS: Record<ListingCategorySlug, LucideIcon> = {
   furniture: SofaIcon,
   appliances: RefrigeratorIcon,
   bicycles: BikeIcon,
-  study: BookOpenIcon,
+  study_essentials: BookOpenIcon,
   kitchen: CookingPotIcon,
-  household: LampIcon,
+  other: LampIcon,
 };
 
 const HOW_IT_WORKS_STEPS = [
@@ -55,8 +58,10 @@ const HERO_IMAGES = [
   { src: "/images/listings/refrigerator-single-door.webp", alt: "Illustration of a single-door refrigerator" },
 ] as const;
 
-export default function HomePage() {
-  const featuredListings = getFeaturedSampleListings();
+async function HomePage() {
+  // Newest approved listings from active providers (real data, not samples).
+  const featured = await searchCatalogue(parseCatalogueFilters({}), 4);
+  const featuredListings = featured?.rows ?? [];
 
   return (
     <>
@@ -169,10 +174,23 @@ export default function HomePage() {
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-sm text-muted-foreground">
-          Rental requests are not open yet. You can preview sample listings
-          while we build the marketplace.
-        </p>
+        <Link
+          href="/how-it-works"
+          className="group mt-8 block overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-colors hover:border-primary/40"
+        >
+          <Image
+            src="/images/how-it-works/05-rental-and-return-flow.webp"
+            alt="A successful rental in eight steps, shown with screenshots from the app: request, confirm, handover by both, agree a return, settle the deposit, both confirm, completed."
+            width={2400}
+            height={1350}
+            sizes="(min-width: 1152px) 1104px, 100vw"
+            className="h-auto w-full"
+          />
+          <span className="flex items-center gap-1 border-t border-border px-5 py-3 text-sm font-medium text-primary">
+            See every flow with real screenshots: renters, providers and admins
+            <ArrowRightIcon aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </Link>
       </section>
 
       <section
@@ -182,27 +200,35 @@ export default function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 id="featured-heading" className="text-2xl font-semibold tracking-tight">
-              Featured sample listings
+              Recently listed
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Illustrative examples, not live offers from real providers.
+              Approved items from providers in {SERVICE_CITY}.
             </p>
           </div>
           <Link
             href="/listings"
             className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            View all sample listings
+            View all listings
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </Link>
         </div>
-        <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredListings.map((listing) => (
-            <li key={listing.id}>
-              <ListingCard listing={listing} />
-            </li>
-          ))}
-        </ul>
+        {featuredListings.length > 0 ? (
+          <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredListings.map((listing) => (
+              <li key={listing.id}>
+                <ListingCard listing={listing} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-6 rounded-xl border border-dashed border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+            {featured === null
+              ? "Listings could not be loaded right now."
+              : `No listings yet. Providers in ${SERVICE_CITY} are adding items; check back soon.`}
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="confirmation-heading" className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
@@ -234,5 +260,15 @@ export default function HomePage() {
         </div>
       </section>
     </>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <HomePage />
+    </Suspense>
   );
 }

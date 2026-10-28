@@ -14,8 +14,17 @@ describe("parseCategoryParam", () => {
     }
   });
 
+  it("uses the database category vocabulary", () => {
+    assert.deepEqual(
+      LISTING_CATEGORIES.map((c) => c.slug),
+      ["furniture", "appliances", "bicycles", "study_essentials", "kitchen", "other"],
+    );
+  });
+
   it("rejects values outside the allowlist", () => {
     for (const value of [
+      "study",
+      "household",
       "",
       "Furniture",
       " furniture",

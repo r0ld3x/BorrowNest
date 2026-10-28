@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { AdminEditForm } from "@/components/admin/admin-edit-form";
 import { FormMessage } from "@/components/auth/form-parts";
 import { AuditList } from "@/components/admin/audit-list";
 import { ModerationPanel } from "@/components/admin/moderation-panel";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
 import { getListingForReview, listAuditForAdmin } from "@/lib/admin/queries";
 import { ROLE_LABELS } from "@/lib/auth/redirects";
@@ -28,7 +30,7 @@ const NOTICES = {
   corrected: "Listing corrected. The change and your reason are in the activity log.",
 } as const;
 
-export default async function AdminListingReviewPage({ params, searchParams }: PageProps<"/admin/listings/[id]">) {
+async function AdminListingReviewPage({ params, searchParams }: PageProps<"/admin/listings/[id]">) {
   const profile = await requireRole(["admin"]);
   const [{ id }, { notice }] = await Promise.all([params, searchParams]);
   const noticeMessage = typeof notice === "string" && notice in NOTICES ? NOTICES[notice as keyof typeof NOTICES] : null;
@@ -199,5 +201,15 @@ export default async function AdminListingReviewPage({ params, searchParams }: P
         </div>
       </div>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/admin/listings/[id]">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AdminListingReviewPage {...props} />
+    </Suspense>
   );
 }

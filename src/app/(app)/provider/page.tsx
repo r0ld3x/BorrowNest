@@ -1,8 +1,10 @@
 import { PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { DashboardShell, UpcomingPanel } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/session";
@@ -10,7 +12,7 @@ import { getOwnListings } from "@/lib/listings/queries";
 
 export const metadata: Metadata = { title: "Provider dashboard" };
 
-export default async function ProviderDashboardPage() {
+async function ProviderDashboardPage() {
   const profile = await requireRole(["provider"], "/provider");
   // RLS returns only this provider's own listings.
   const listings = await getOwnListings();
@@ -61,15 +63,25 @@ export default async function ProviderDashboardPage() {
             </p>
           )}
         </section>
-        <UpcomingPanel
+        {/* <UpcomingPanel
           title="Coming in later stages"
           items={[
             "Admin approval makes submitted listings public.",
             "Accept or decline rental requests for your items.",
             "Confirm handover and return together with the renter.",
           ]}
-        />
+        /> */}
       </div>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ProviderDashboardPage />
+    </Suspense>
   );
 }

@@ -6,7 +6,7 @@ export const SERVICE_CITY = "Gwalior";
 
 export const PRIMARY_NAV_LINKS = [
   { href: "/listings", label: "Browse listings", wideOnly: false },
-  { href: "/#how-it-works", label: "How it works", wideOnly: true },
+  { href: "/how-it-works", label: "How it works", wideOnly: true },
 ] as const;
 
 export const GUEST_NAV_LINKS = [
@@ -19,6 +19,7 @@ export const ACCOUNT_NAV_LINKS = [
   { href: "/account", label: "Account" },
 ] as const;
 
+// Slugs match the products.category check constraint in the database.
 export const LISTING_CATEGORIES = [
   {
     slug: "furniture",
@@ -36,18 +37,18 @@ export const LISTING_CATEGORIES = [
     description: "Get around the city on two wheels.",
   },
   {
-    slug: "study",
+    slug: "study_essentials",
     label: "Study essentials",
     description: "Desks, chairs, shelves, and lamps.",
   },
   {
     slug: "kitchen",
-    label: "Kitchen equipment",
+    label: "Kitchen",
     description: "Cooktops, cookware, and small appliances.",
   },
   {
-    slug: "household",
-    label: "Household items",
+    slug: "other",
+    label: "Other",
     description: "Everyday items for a temporary home.",
   },
 ] as const;

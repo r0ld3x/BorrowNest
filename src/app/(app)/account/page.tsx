@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { UpdateNameForm } from "@/components/auth/auth-forms";
 import { FormMessage } from "@/components/auth/form-parts";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ROLE_LABELS } from "@/lib/auth/redirects";
 import { requireActiveProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +15,7 @@ const NOTICES = {
   "password-updated": "Your password has been updated.",
 } as const;
 
-export default async function AccountPage({ searchParams }: PageProps<"/account">) {
+async function AccountPage({ searchParams }: PageProps<"/account">) {
   const profile = await requireActiveProfile("/account");
   const { notice } = await searchParams;
 
@@ -56,5 +58,15 @@ export default async function AccountPage({ searchParams }: PageProps<"/account"
         </section>
       </div>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/account">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AccountPage {...props} />
+    </Suspense>
   );
 }

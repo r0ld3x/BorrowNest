@@ -33,6 +33,24 @@ describe("getSafeRedirectPath", () => {
     }
   });
 
+  it("accepts exactly a listing detail path, nothing looser", () => {
+    const id = "3f9c1a2e-8b7d-4c6e-9f0a-1b2c3d4e5f60";
+    assert.equal(getSafeRedirectPath(`/listings/${id}`), `/listings/${id}`);
+    for (const value of [
+      `/listings/${id}/`,
+      `/listings/${id}?x=1`,
+      `/listings/${id}#x`,
+      `/listings/${id.toUpperCase()}`,
+      `//listings/${id}`,
+      `/listings/${id}/../../admin`,
+      `/listings/not-a-uuid`,
+      `https://evil.example/listings/${id}`,
+      `/listings/${id}%2F%2Fevil.example`,
+    ]) {
+      assert.equal(getSafeRedirectPath(value), null, value);
+    }
+  });
+
   it("rejects non-string values", () => {
     for (const value of [undefined, null, ["/admin"], 1, {}]) {
       assert.equal(getSafeRedirectPath(value), null);

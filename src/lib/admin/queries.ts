@@ -81,7 +81,7 @@ export async function listAccountsForAdmin(search: string, page: number): Promis
 export interface AuditEntry {
   id: string;
   action: AuditAction;
-  target_type: "product" | "profile";
+  target_type: "product" | "profile" | "booking";
   target_id: string;
   reason: string | null;
   summary: Record<string, unknown>;

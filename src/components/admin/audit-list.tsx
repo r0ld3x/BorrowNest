@@ -9,6 +9,14 @@ const ACTION_LABELS: Record<AuditEntry["action"], string> = {
   "listing.edit": "Corrected listing",
   "account.suspend": "Suspended account",
   "account.restore": "Restored account",
+  "booking.cancel": "Cancelled booking",
+  "booking.issue_resolve": "Resolved booking issue",
+  "dispute.open_on_behalf": "Opened a dispute on a participant’s behalf",
+  "dispute.status": "Updated a dispute’s status",
+  "dispute.resolve": "Resolved a dispute",
+  "booking.admin_close": "Closed a booking (admin resolution)",
+  "listing.inventory_hold": "Held a listing’s inventory",
+  "listing.inventory_release": "Released a listing’s inventory hold",
 };
 
 const dateTime = new Intl.DateTimeFormat("en-IN", {

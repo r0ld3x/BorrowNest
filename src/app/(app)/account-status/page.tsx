@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { AuthCard } from "@/components/auth/auth-card";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { FormMessage } from "@/components/auth/form-parts";
+import { PageLoading } from "@/components/layout/page-loading";
 import { getCurrentProfile } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Account unavailable" };
 
 // Shown when a signed-in user has no usable profile or is suspended.
-export default async function AccountStatusPage() {
+async function AccountStatusPage() {
   const lookup = await getCurrentProfile();
   if (lookup.kind === "signed-out") redirect("/login");
   if (lookup.kind === "found" && lookup.profile.accountStatus === "active") {
@@ -32,5 +34,15 @@ export default async function AccountStatusPage() {
         <LogoutButton className="justify-self-start" />
       </div>
     </AuthCard>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AccountStatusPage />
+    </Suspense>
   );
 }

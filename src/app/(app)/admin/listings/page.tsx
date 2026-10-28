@@ -2,9 +2,11 @@ import { ImageIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { FilterTabs, Pagination, SearchForm } from "@/components/admin/list-controls";
+import { FilterTabs, Pagination, SearchForm } from "@/components/common/list-controls";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
 import { parseListingStatus, parsePage, parseSearch } from "@/lib/admin/params";
 import { listListingsForAdmin } from "@/lib/admin/queries";
@@ -26,7 +28,7 @@ const STATUS_TABS = [
 
 const dateTime = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
 
-export default async function AdminListingsPage({ searchParams }: PageProps<"/admin/listings">) {
+async function AdminListingsPage({ searchParams }: PageProps<"/admin/listings">) {
   const profile = await requireRole(["admin"]);
   const params = await searchParams;
   const status = parseListingStatus(params.status);
@@ -93,5 +95,15 @@ export default async function AdminListingsPage({ searchParams }: PageProps<"/ad
         </>
       )}
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/admin/listings">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AdminListingsPage {...props} />
+    </Suspense>
   );
 }

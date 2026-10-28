@@ -21,10 +21,13 @@ const PROTECTED_PREFIXES = [
   "/admin",
 ] as const;
 
+// A public listing page, e.g. after "Log in to rent". Exact shape only.
+const LISTING_DETAIL_PATH = /^\/listings\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 /** Returns the value only if it exactly matches an allowlisted path. */
 export function getSafeRedirectPath(value: unknown): string | null {
   if (typeof value !== "string") return null;
-  return POST_LOGIN_DESTINATIONS.has(value) ? value : null;
+  return POST_LOGIN_DESTINATIONS.has(value) || LISTING_DETAIL_PATH.test(value) ? value : null;
 }
 
 export function isProtectedPath(pathname: string): boolean {

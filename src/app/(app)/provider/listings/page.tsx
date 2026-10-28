@@ -2,8 +2,10 @@ import { ImageIcon, PackageOpenIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/session";
@@ -12,7 +14,7 @@ import { formatInr } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Your listings" };
 
-export default async function ProviderListingsPage() {
+async function ProviderListingsPage() {
   const profile = await requireRole(["provider"]);
   const listings = await getOwnListings();
 
@@ -76,5 +78,15 @@ export default async function ProviderListingsPage() {
         </ul>
       )}
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ProviderListingsPage />
+    </Suspense>
   );
 }

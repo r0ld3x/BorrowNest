@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { AuthCard, SetupNotice } from "@/components/auth/auth-card";
 import { LoginForm } from "@/components/auth/auth-forms";
 import { FormMessage } from "@/components/auth/form-parts";
+import { PageLoading } from "@/components/layout/page-loading";
 import { getSafeRedirectPath } from "@/lib/auth/redirects";
 import { getVerifiedClaims } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -19,7 +21,7 @@ const NOTICES = {
   },
 } as const;
 
-export default async function LoginPage({ searchParams }: PageProps<"/login">) {
+async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next, error } = await searchParams;
   const configured = isSupabaseConfigured();
 
@@ -61,5 +63,15 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <SetupNotice />
       )}
     </AuthCard>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/login">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <LoginPage {...props} />
+    </Suspense>
   );
 }

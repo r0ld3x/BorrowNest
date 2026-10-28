@@ -2,9 +2,11 @@ import { ArrowLeftIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { FormMessage } from "@/components/auth/form-parts";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { ListingForm } from "@/components/listings/provider/listing-form";
 import { ListingStatusActions } from "@/components/listings/provider/listing-status-actions";
 import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
@@ -25,7 +27,7 @@ const STATUS_HELP: Record<ListingStatus, string> = {
   archived: "Hidden and read-only. Its history is kept.",
 };
 
-export default async function EditListingPage({ params, searchParams }: PageProps<"/provider/listings/[id]">) {
+async function EditListingPage({ params, searchParams }: PageProps<"/provider/listings/[id]">) {
   const profile = await requireRole(["provider"]);
   const [{ id }, { created }] = await Promise.all([params, searchParams]);
 
@@ -108,5 +110,15 @@ export default async function EditListingPage({ params, searchParams }: PageProp
         </div>
       </div>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page(props: PageProps<"/provider/listings/[id]">) {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <EditListingPage {...props} />
+    </Suspense>
   );
 }

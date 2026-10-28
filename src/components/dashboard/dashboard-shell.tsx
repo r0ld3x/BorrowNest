@@ -4,11 +4,18 @@ import { ROLE_LABELS, dashboardPathFor } from "@/lib/auth/redirects";
 import type { CurrentProfile } from "@/lib/auth/session";
 
 const ROLE_LINKS = {
-  renter: [{ href: "/listings", label: "Browse listings" }],
-  provider: [{ href: "/provider/listings", label: "Listings" }],
+  renter: [
+    { href: "/renter/bookings", label: "Bookings" },
+    { href: "/listings", label: "Browse listings" },
+  ],
+  provider: [
+    { href: "/provider/listings", label: "Listings" },
+    { href: "/provider/requests", label: "Requests" },
+  ],
   admin: [
     { href: "/admin/listings", label: "Listings" },
     { href: "/admin/users", label: "Accounts" },
+    { href: "/admin/disputes", label: "Disputes" },
     { href: "/admin/activity", label: "Activity" },
   ],
 } as const;

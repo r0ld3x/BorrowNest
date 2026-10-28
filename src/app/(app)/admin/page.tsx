@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { AuditList } from "@/components/admin/audit-list";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { PageLoading } from "@/components/layout/page-loading";
 import { getAdminOverview, listAuditForAdmin } from "@/lib/admin/queries";
 import { requireRole } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Admin dashboard" };
 
-export default async function AdminDashboardPage() {
+async function AdminDashboardPage() {
   const profile = await requireRole(["admin"], "/admin");
   const [overview, recent] = await Promise.all([getAdminOverview(), listAuditForAdmin(null, 1, 5)]);
 
@@ -66,5 +68,15 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
     </DashboardShell>
+  );
+}
+
+// Its own Suspense boundary, below every shared layout, so client navigations
+// into this page show the loading state instead of blocking on server data.
+export default function Page() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <AdminDashboardPage />
+    </Suspense>
   );
 }

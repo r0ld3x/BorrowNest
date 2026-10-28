@@ -157,8 +157,9 @@ reset role;
   select pg_temp.expect_error(format($$select public.reorder_product_images(%L, %L::uuid[])$$, :'pid', '{' || :'img1' || '}'),
     'invalid_image_order', 'reorder must include every photo exactly once');
   select pg_temp.expect_error(format($$select public.reorder_product_images(%L, %L::uuid[])$$, :'pid',
-      (select '{' || string_agg(id::text, ',') || ',' || :'img1' || '}' from (select id from public.product_images where product_id = :'pid' and id <> :'img1' order by sort_order limit 4) t)),
-    'invalid_image_order', 'reorder rejects duplicated ids');
+      -- Five entries, right length, but img1 twice and one photo missing.
+      (select '{' || :'img1' || ',' || :'img1' || ',' || string_agg(id::text, ',') || '}' from (select id from public.product_images where product_id = :'pid' and id <> :'img1' order by sort_order limit 3) t)),
+    'invalid_image_order', 'reorder rejects a list that repeats one photo and drops another');
   select public.reorder_product_images(:'pid', (select array_agg(id order by sort_order desc) from public.product_images where product_id = :'pid'));
   select pg_temp.expect(
     (select array_agg(sort_order order by sort_order) = '{0,1,2,3,4}' from public.product_images where product_id = :'pid')
