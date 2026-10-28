@@ -25,7 +25,7 @@ export default async function AccountStatusPage() {
           status="error"
           message={
             suspended
-              ? "This account has been suspended, so its dashboard and data are not available. Contact BorrowNest support if you think this is a mistake."
+              ? "This account has been suspended, so its dashboard and data are not available. Your records are kept. If you have a rental, return or deposit still in progress, BorrowNest support will help settle it. Contact support if you think this is a mistake."
               : "We could not load the profile for this account. Please try again later or contact BorrowNest support."
           }
         />

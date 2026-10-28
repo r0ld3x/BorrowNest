@@ -5,8 +5,12 @@ import type { CurrentProfile } from "@/lib/auth/session";
 
 const ROLE_LINKS = {
   renter: [{ href: "/listings", label: "Browse listings" }],
-  provider: [],
-  admin: [],
+  provider: [{ href: "/provider/listings", label: "Listings" }],
+  admin: [
+    { href: "/admin/listings", label: "Listings" },
+    { href: "/admin/users", label: "Accounts" },
+    { href: "/admin/activity", label: "Activity" },
+  ],
 } as const;
 
 export function DashboardShell({
@@ -30,7 +34,7 @@ export function DashboardShell({
         <div className="min-w-0">
           <p className="text-sm font-medium text-primary">{ROLE_LABELS[profile.role]}</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-1 break-words text-muted-foreground">
+          <p className="mt-1 wrap-break-word text-muted-foreground">
             Signed in as {profile.fullName}
           </p>
         </div>

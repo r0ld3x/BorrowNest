@@ -1,76 +1,70 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { DashboardShell, UpcomingPanel } from "@/components/dashboard/dashboard-shell";
-import { ROLE_LABELS } from "@/lib/auth/redirects";
+import { AuditList } from "@/components/admin/audit-list";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { getAdminOverview, listAuditForAdmin } from "@/lib/admin/queries";
 import { requireRole } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Admin dashboard" };
 
-const dateFormatter = new Intl.DateTimeFormat("en-IN", {
-  dateStyle: "medium",
-  timeZone: "Asia/Kolkata",
-});
-
 export default async function AdminDashboardPage() {
   const profile = await requireRole(["admin"], "/admin");
+  const [overview, recent] = await Promise.all([getAdminOverview(), listAuditForAdmin(null, 1, 5)]);
 
-  // The admin read policy is enforced in the database, not by this page.
-  const supabase = await createClient();
-  const { data: profiles, error } = supabase
-    ? await supabase
-        .from("profiles")
-        .select("id, full_name, role, account_status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50)
-    : { data: null, error: null };
+  // Real counts from the database; nothing here is estimated or mocked.
+  const cards = overview
+    ? [
+        { label: "Waiting for review", value: overview.pending_review, href: "/admin/listings?status=pending_review", highlight: overview.pending_review > 0 },
+        { label: "Published listings", value: overview.published, href: "/admin/listings?status=published" },
+        { label: "Rejected listings", value: overview.rejected, href: "/admin/listings?status=rejected" },
+        { label: "All listings", value: overview.total_listings, href: "/admin/listings?status=all" },
+        { label: "Accounts", value: overview.accounts, href: "/admin/users" },
+        { label: "Suspended accounts", value: overview.suspended_accounts, href: "/admin/users" },
+      ]
+    : [];
 
   return (
     <DashboardShell profile={profile} title="Administration">
-      <div className="grid gap-6">
-        <section aria-labelledby="accounts-heading" className="rounded-xl border border-border bg-card p-6">
-          <h2 id="accounts-heading" className="font-semibold">
-            Recent accounts
+      {overview === null ? (
+        <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          The overview could not be loaded. Please try again later.
+        </p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {cards.map((card) => (
+            <li key={card.label}>
+              <Link
+                href={card.href}
+                className={`flex h-full flex-col gap-1 rounded-xl border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-accent ${
+                  card.highlight ? "border-primary/50" : "border-border"
+                }`}
+              >
+                <span className="text-sm text-muted-foreground">{card.label}</span>
+                <span className="text-3xl font-semibold tabular-nums">{card.value}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <section aria-labelledby="recent-heading" className="mt-8 rounded-xl border border-border bg-card p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="recent-heading" className="font-semibold">
+            Recent admin activity
           </h2>
-          {error ? (
-            <p role="alert" className="mt-2 text-sm text-destructive">
-              Accounts could not be loaded. Please try again later.
-            </p>
+          <Link href="/admin/activity" className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="mt-2">
+          {recent ? (
+            <AuditList entries={recent.rows} />
           ) : (
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full min-w-[32rem] text-left text-sm">
-                <caption className="sr-only">Most recent 50 accounts</caption>
-                <thead className="text-xs text-muted-foreground">
-                  <tr className="border-b border-border">
-                    <th scope="col" className="py-2 pr-3 font-medium">Name</th>
-                    <th scope="col" className="py-2 pr-3 font-medium">Role</th>
-                    <th scope="col" className="py-2 pr-3 font-medium">Status</th>
-                    <th scope="col" className="py-2 font-medium">Joined</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {(profiles ?? []).map((row) => (
-                    <tr key={row.id}>
-                      <td className="max-w-64 py-2.5 pr-3 break-words">{row.full_name}</td>
-                      <td className="py-2.5 pr-3">{ROLE_LABELS[row.role]}</td>
-                      <td className="py-2.5 pr-3 capitalize">{row.account_status}</td>
-                      <td className="py-2.5">{dateFormatter.format(new Date(row.created_at))}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <p role="alert" className="text-sm text-destructive">Activity could not be loaded.</p>
           )}
-        </section>
-        <UpcomingPanel
-          title="Coming in later stages"
-          items={[
-            "Review listings submitted for publication.",
-            "Suspend or restore accounts, with an audit trail.",
-            "Resolve rental disputes with recorded decisions.",
-          ]}
-        />
-      </div>
+        </div>
+      </section>
     </DashboardShell>
   );
 }

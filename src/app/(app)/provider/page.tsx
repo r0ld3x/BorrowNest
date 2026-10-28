@@ -1,67 +1,70 @@
+import { PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { DashboardShell, UpcomingPanel } from "@/components/dashboard/dashboard-shell";
+import { ListingStatusBadge } from "@/components/listings/provider/listing-status-badge";
+import { buttonVariants } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/server";
+import { getOwnListings } from "@/lib/listings/queries";
 
 export const metadata: Metadata = { title: "Provider dashboard" };
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  pending_review: "Pending review",
-  published: "Published",
-  paused: "Paused",
-  rejected: "Rejected",
-  archived: "Archived",
-};
-
 export default async function ProviderDashboardPage() {
   const profile = await requireRole(["provider"], "/provider");
-
   // RLS returns only this provider's own listings.
-  const supabase = await createClient();
-  const { data: listings, error } = supabase
-    ? await supabase
-        .from("products")
-        .select("id, title, listing_status, updated_at")
-        .order("updated_at", { ascending: false })
-        .limit(50)
-    : { data: null, error: null };
+  const listings = await getOwnListings();
+  const recent = listings?.slice(0, 5) ?? [];
 
   return (
-    <DashboardShell profile={profile} title="Your listings">
+    <DashboardShell profile={profile} title="Provider overview">
       <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="listings-heading" className="rounded-xl border border-border bg-card p-6">
-          <h2 id="listings-heading" className="font-semibold">
-            Listings
-          </h2>
-          {error ? (
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="listings-heading" className="font-semibold">
+              Recent listings
+            </h2>
+            <Link href="/provider/listings/new" className={buttonVariants({ size: "sm", className: "h-8" })}>
+              <PlusIcon aria-hidden="true" data-icon="inline-start" />
+              New listing
+            </Link>
+          </div>
+          {listings === null ? (
             <p role="alert" className="mt-2 text-sm text-destructive">
               Your listings could not be loaded. Please try again later.
             </p>
-          ) : listings && listings.length > 0 ? (
-            <ul className="mt-3 divide-y divide-border text-sm">
-              {listings.map((listing) => (
-                <li key={listing.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <span className="min-w-0 break-words">{listing.title}</span>
-                  <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs">
-                    {STATUS_LABELS[listing.listing_status] ?? listing.listing_status}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          ) : recent.length > 0 ? (
+            <>
+              <ul className="mt-3 divide-y divide-border text-sm">
+                {recent.map((listing) => (
+                  <li key={listing.id} className="flex items-center justify-between gap-3 py-2.5">
+                    <Link
+                      href={`/provider/listings/${listing.id}`}
+                      className="min-w-0 wrap-break-word underline-offset-4 hover:underline"
+                    >
+                      {listing.title}
+                    </Link>
+                    <ListingStatusBadge status={listing.status} />
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/provider/listings"
+                className="mt-3 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline"
+              >
+                View all listings
+              </Link>
+            </>
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
-              You have no listings yet. Creating and managing listings arrives in
-              the next stage.
+              You have no listings yet. Create a draft to get started.
             </p>
           )}
         </section>
         <UpcomingPanel
           title="Coming in later stages"
           items={[
-            "Create listings with photos, daily rates, and refundable deposits.",
-            "Submit listings for review before they are published.",
+            "Admin approval makes submitted listings public.",
             "Accept or decline rental requests for your items.",
             "Confirm handover and return together with the renter.",
           ]}

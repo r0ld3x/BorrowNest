@@ -50,10 +50,10 @@ describe("resetPasswordSchema", () => {
 describe("formFields", () => {
   it("ignores files and missing keys", () => {
     const data = new FormData();
-    data.set("email", "a@b.test");
+    data.set("email", "bn-test@roldex.me");
     data.set("password", new Blob(["x"]));
     assert.deepEqual(formFields(data, ["email", "password", "missing"]), {
-      email: "a@b.test",
+      email: "bn-test@roldex.me",
       password: "",
       missing: "",
     });

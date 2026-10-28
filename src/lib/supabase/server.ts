@@ -2,6 +2,7 @@ import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import type { Database } from "@/types/database";
@@ -16,6 +17,10 @@ export async function createClient() {
   if (!config) return null;
 
   const cookieStore = await cookies();
+  // Session-scoped work always runs at request time: it keeps per-user data
+  // out of prerendered/prefetched shells, and supabase-js reads the clock
+  // (session expiry) as soon as the client is created.
+  await connection();
 
   return createServerClient<Database>(config.url, config.publishableKey, {
     cookies: {

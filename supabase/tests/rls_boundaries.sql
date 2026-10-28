@@ -39,14 +39,14 @@ grant execute on function pg_temp.expect_denied(text, text) to anon, authenticat
 -- Fixtures (inserted as the migration owner, like Supabase Auth would)
 -- ---------------------------------------------------------------------------
 insert into auth.users (id, email, raw_user_meta_data) values
-  ('00000000-0000-4000-a000-00000000000a', 'renter-a@example.test',   '{"full_name":"Renter A","account_type":"renter"}'),
-  ('00000000-0000-4000-a000-00000000000b', 'renter-b@example.test',   '{"full_name":"Renter B"}'),
-  ('00000000-0000-4000-a000-0000000000c1', 'provider-a@example.test', '{"full_name":"Provider A","account_type":"provider"}'),
-  ('00000000-0000-4000-a000-0000000000c2', 'provider-b@example.test', '{"full_name":"Provider B","account_type":"provider"}'),
-  ('00000000-0000-4000-a000-0000000000ad', 'admin@example.test',      '{"full_name":"Admin","account_type":"renter"}'),
-  ('00000000-0000-4000-a000-0000000000e1', 'sneaky@example.test',     '{"full_name":"<img src=x onerror=alert(1)>","account_type":"admin","role":"admin"}'),
-  ('00000000-0000-4000-a000-0000000000e2', 'blank@example.test',      '{"full_name":"   ","account_type":"superuser"}'),
-  ('00000000-0000-4000-a000-0000000000e3', 'nometa@example.test',     '{}');
+  ('00000000-0000-4000-a000-00000000000a', 'bn-test-renter-a@roldex.me',   '{"full_name":"Renter A","account_type":"renter"}'),
+  ('00000000-0000-4000-a000-00000000000b', 'bn-test-renter-b@roldex.me',   '{"full_name":"Renter B"}'),
+  ('00000000-0000-4000-a000-0000000000c1', 'bn-test-provider-a@roldex.me', '{"full_name":"Provider A","account_type":"provider"}'),
+  ('00000000-0000-4000-a000-0000000000c2', 'bn-test-provider-b@roldex.me', '{"full_name":"Provider B","account_type":"provider"}'),
+  ('00000000-0000-4000-a000-0000000000ad', 'bn-test-admin@roldex.me',      '{"full_name":"Admin","account_type":"renter"}'),
+  ('00000000-0000-4000-a000-0000000000e1', 'bn-test-sneaky@roldex.me',     '{"full_name":"<img src=x onerror=alert(1)>","account_type":"admin","role":"admin"}'),
+  ('00000000-0000-4000-a000-0000000000e2', 'bn-test-blank@roldex.me',      '{"full_name":"   ","account_type":"superuser"}'),
+  ('00000000-0000-4000-a000-0000000000e3', 'bn-test-nometa@roldex.me',     '{}');
 
 -- Operator-style promotion, as in supabase/operator/promote-admin.sql.
 update public.profiles set role = 'admin' where id = '00000000-0000-4000-a000-0000000000ad';
